@@ -1,0 +1,35 @@
+[font_size]
+16
+[notes]
+### 1
+- Bonjour, je m'appelle Nicolas Iooss et je suis auditeur en sécurité des systèmes d'information à l'ANSSI
+- Aujourd'hui je vais vous présenter le résultat des travaux que j'ai menés au sujet des iDRAC
+- Mais avant cela, je vais commencer par présenter un problème qui est résolu par l'utilisation d'un iDRAC, ce qui permet de mieux comprendre ce dont il s'agit.
+
+### 3
+- Lors de la mise en place d'un serveur dans un datacenter, un procédure peut consister en les 4 étapes suivantes : ...
+
+### 4
+- Il existe depuis une vingtaine d'années des systèmes appelés BMC qui permettent d'installer un serveur à distance
+- Cela permet de réduire le temps passer dans le datacenter
+
+### 5
+- En pratique, un BMC se présente de la manière suivante...
+
+### 6
+- À gauche : le réseau habituel sur lequel les services du serveur sont exposés
+- À droite : le réseau des BMC, qui permet l'installation du serveur
+- Un BMC permet aussi de superviser certaines métriques du serveur (température, alimentation...)
+
+### 25
+- Primary/Secondary/Subordinate Bus number, pour le "ID Routing" PCIe
+
+### 32
+- Dans un serveur Lenovo, pas Dell, mais qui semble partager des composants matériel
+
+### 36
+- Pour le "Address Routing" PCIe
+- (Aussi I/O ports et prefetchable memory addresses)
+
+### 48
+- Bref. Si vous devez retenir 2 choses : mettez à jour vos BMC, et ne les connectez pas sur Internet

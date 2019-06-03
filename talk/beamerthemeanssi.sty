@@ -1,0 +1,294 @@
+%Version du 12/03/2012
+
+\usetheme{Rochester}
+
+\RequirePackage{pgf}
+\RequirePackage{ifthen}
+%\usepackage[ansinew]{inputenc}
+\usepackage[utf8]{inputenc}
+\usepackage[francais]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{marvosym}
+\usepackage{soul}
+\usepackage{tikz} % schémas
+%\usepackage{pslatex} % belle police
+\usepackage{textcomp} % beau symbole degré
+
+% blocs arrondis avec ombre
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% pas d'icones de navigation
+\setbeamertemplate{navigation symbols}{}
+% pas de transparence du texte caché
+\setbeamercovered{invisible}
+
+% tikz
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+% caractères spéciaux qui causent des problèmes de compatibilité avec textconv:
+%   Package textcomp Error: Symbol \textrightarrow not provided by font family phv in TS1 encoding.
+\let\oldtextrightarrow\textrightarrow
+\renewcommand*\textrightarrow{{\fontfamily{}\selectfont\oldtextrightarrow}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% style des puces itemize
+\setbeamertemplate{itemize item}[default]
+\setbeamertemplate{itemize subitem}[default]
+\setbeamertemplate{itemize subsubitem}[default]
+
+% taille du logo dans l'en-tête des pages
+\def\taillelogo{50pt}
+% taille du logo dans la page de titre
+\def\taillelogotitre{70pt}
+
+% Couleurs de l'ANSSI
+\definecolor{BleuANSSI}{rgb}{0.1,0.4,0.61}
+\definecolor{RougeANSSI}{rgb}{0.62,0.12,0.15}
+\definecolor{GrisANSSI}{rgb}{0.9,0.9,0.9}
+
+
+% couleur des puces itemize et enumerate
+\usecolortheme[named=BleuANSSI]{structure}
+
+% couleur du texte de la page de titre
+\setbeamercolor{titre presentation}{fg=BleuANSSI}
+
+% couleur du trait en dessous du titre des pages
+\setbeamercolor{trait}{fg=RougeANSSI}
+
+% couleur des titres des pages
+\setbeamercolor{titre slide}{fg=RougeANSSI}
+\setbeamerfont{titre slide}{series=\large\bfseries}
+
+% couleur d'arrière plan de la barre de navigation en haut du slide
+%\setbeamercolor{navigation}{bg=BleuANSSI}
+\setbeamercolor{navigation}{fg=BleuANSSI}
+\setbeamerfont{navigation}{series=\small}
+
+% couleur et police du bas des pages
+\setbeamercolor{bas de page}{fg=RougeANSSI, bg=GrisANSSI}
+\setbeamerfont{bas de page}{series=\bfseries}
+
+\gdef\vclassif{}
+\newcommand{\classification}[1]{\gdef\vclassif{#1}}
+
+% brouillon
+\newcommand{\brouillon}[1]{\def\vbrouillon{#1}}
+
+% centrer image max width
+\newcommand{\imgsrc}[1]{
+  \begin{center}
+    \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#1}
+  \end{center}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% gestion des sections et subsections
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtBeginSection[]
+{
+  \begin{frame}{Plan}
+		\medskip
+		\tableofcontents[currentsection,hideallsubsections]
+	\end{frame}
+}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}{Plan}
+    \tableofcontents[sectionstyle=show/hide, subsectionstyle=show/shaded/hide]
+  \end{frame}
+}
+
+% Booléen de subsection pour l'affichage dans le haut des pages
+\let\realsection\section
+\let\realsubsection\subsection
+% false par défaut
+\newif\ifsubsectiondefinie
+
+\renewcommand{\section}[1]{%
+\subsectiondefiniefalse%
+\realsection{#1}%
+}
+
+\renewcommand{\subsection}[1]{%
+\subsectiondefinietrue%
+\realsubsection{#1}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Raf CMDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\rem}[1]{
+  \@latex@warning{#1}
+  \ifthenelse{\equal{\vbrouillon}{1}}
+  {\color{red}{#1}\color{black}}{}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Notes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Gestion des # dans le fichier
+{\catcode`\#=12 \gdef\mynotedebut{### }}
+
+% Compteur de numéro de slide courant et dernier
+\newcounter{mylastframenumber}
+\setcounter{mylastframenumber}{0}
+
+\newcommand{\mynoteouvrefichier}{%
+  \message{Ouverture des notes}
+  \gdef\mynoteopened{1}
+  \newwrite\mynotefile
+  \immediate\openout\mynotefile=\jobname.pdfpc
+  \immediate\write\mynotefile{[font_size]}
+  \immediate\write\mynotefile{16}
+  \immediate\write\mynotefile{[notes]}
+}
+
+\newcommand{\mynotefermefichier}{%
+  \ifdefined\mynoteopened
+    %\immediate\write\mynotefile{</note></notes>}
+    \immediate\closeout\mynotefile
+  \fi
+}
+
+% Argument optionnel (défaut à 1) correspondant au numéro de sous-frame
+\newcommand{\mynote}[2][1]{%
+  \ifdefined\mynoteopened
+  \else
+    \mynoteouvrefichier
+  \fi
+  % Contenu écrit que si c'est le bon overlay
+  \makeatletter
+  \ifnum\beamer@slideinframe=#1
+    \message{Notes page \thepage, frame \theframenumber, slide #1^^J}
+    \ifnum\value{framenumber}=\value{mylastframenumber}
+      % écriture d'un retour à la ligne si continuation
+      %\immediate\write\mynotefile{^^J}
+    \else
+      % on ferme d'abord la balise si pas le premier
+      \ifnum\value{mylastframenumber}=0
+      \else
+        \immediate\write\mynotefile{}
+      \fi
+      % écriture de la balise du slide
+      \immediate\write\mynotefile{\mynotedebut\theframenumber}
+    \fi
+    % écriture du contenu
+    \immediate\write\mynotefile{- \unexpanded{#2}}
+    % maj du compteur de dernier slide
+    \setcounter{mylastframenumber}{\value{framenumber}}
+  \fi
+  \makeatother
+}
+
+\AtEndDocument{\mynotefermefichier}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% page de titre
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\maketitle}{
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+}
+
+\setbeamertemplate{title page}
+{
+  \begin{centering}
+    \includegraphics[width=\taillelogotitre]{logotitre}
+    \vskip 1em
+    \usebeamercolor[fg]{titre presentation}
+    {\Large \inserttitle}
+    \vskip 1em
+    \insertsubtitle
+    \vskip 1em
+    \insertauthor 
+    \vskip 1em
+    \insertinstitute
+    \vskip 1em
+    \insertdate
+    \vskip 1em
+  \end{centering}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% haut et bas des slides
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newlength{\tailletrait}
+\newlength{\taillenavigation}
+\setlength{\tailletrait}{\paperwidth}
+\setlength{\taillenavigation}{\paperwidth}
+\addtolength{\tailletrait}{-\taillelogo}
+\addtolength{\tailletrait}{-1em}
+\addtolength{\taillenavigation}{-\taillelogo}
+\addtolength{\taillenavigation}{-1em}
+ 
+% titre du slide en haut avec un trait en dessous
+\setbeamertemplate{frametitle}
+{
+  % on descend un peu le titre
+  \vskip 1ex
+  \begin{beamercolorbox}[wd=\paperwidth]{titre slide}
+    \hskip \taillelogo
+		\hskip -1pt
+    \usebeamerfont*{titre slide}
+    \insertframetitle\phantom{Pp} % pour que la hauteur soit constante
+  \end{beamercolorbox}
+  % on remonte un peu le trait
+  \vskip -1ex
+  % box englobant le trait pour éviter des warnings
+  \begin{beamercolorbox}[wd=\paperwidth]{titre slide}
+    % trait en tikz pour le dégradé
+    \begin{tikzpicture}
+      \draw (0,0) node {};
+      \path [shade,left color=white, right color=RougeANSSI] (1,0) rectangle (2,0.03);
+      \path [fill=RougeANSSI] (1.99,0) rectangle (17.62,0.03);
+    \end{tikzpicture}
+  \end{beamercolorbox}
+}
+
+% haut du slide (width=paperwidth), bg color pas prise en compte
+\setbeamertemplate{headline}
+{
+  \includegraphics[width=\taillelogo]{logo}
+  % remonte pour le menu des sections horizontal
+  \vskip -\taillelogo
+  \vskip 1em
+  \hskip \taillelogo
+  % menu de navigation : section [ - subsection ]
+  \begin{beamercolorbox}[wd=\taillenavigation]{navigation}
+    \usebeamerfont*{navigation}
+    \insertsection
+    \ifsubsectiondefinie
+     \hskip 1ex -\hskip 1ex \insertsubsection
+    \fi
+    \phantom{Pp} % pour que la hauteur soit constante
+  \end{beamercolorbox}
+}
+
+\setbeamertemplate{mini frames}[box]
+
+% bas du slide (width=paperwidth), bg color pas prise en compte
+% entité - titre - page / total
+\setbeamertemplate{footline}
+{
+  \begin{beamercolorbox}[wd=\paperwidth]{bas de page}
+    \usebeamerfont*{bas de page}
+    \vskip 1ex
+    %\hspace*{0.8em} \insertinstitute \hfill \insertshorttitle \hfill \insertframenumber/\inserttotalframenumber \hspace*{1em}
+    \hspace*{0.8em} \insertinstitute \hfill \insertshorttitle \hfill \insertframenumber \hspace*{1em}
+    % ne colle pas le bas
+    \vspace{1ex}
+  \end{beamercolorbox}
+ }
+
